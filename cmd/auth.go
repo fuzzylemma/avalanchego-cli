@@ -2,7 +2,7 @@ package cmd
 
 import (
    "fmt"
-   "time"
+   "context"
    "github.com/ava-labs/avalanchego/api/auth"
    "github.com/ava-labs/avalanchego/utils/rpc"
    "github.com/ava-labs/avalanchego/api"
@@ -30,10 +30,8 @@ func AddAuthCommands(rootCmd *cobra.Command) {
 
 func AuthClient() *Client {
    uri  := fmt.Sprintf("http://%s:%d", NodeAddress, NodePort)
-   var timeout time.Duration = 1000000000
-   return ANewClient(uri, timeout)
+   return ANewClient(uri)
 }
-
 
 func NewTokenCmd() *cobra.Command {
    return &cobra.Command{
@@ -99,25 +97,26 @@ type Client struct {
    requester rpc.EndpointRequester
 }
 
-func ANewClient(uri string, requestTimeout time.Duration) *Client {
+func ANewClient(uri string) *Client {
    return &Client{
-      requester: rpc.NewEndpointRequester(uri, "/ext/auth", "auth", requestTimeout),
+      requester: rpc.NewEndpointRequester(uri, "/ext/auth", "auth"),
    }
 }
 
 func (c *Client) GetNewToken(password string, endpoints []string) (string, error) {
+   ctx := context.Background()
    res := &auth.Token{}
-   err := c.requester.SendRequest("newToken", &auth.NewTokenArgs{
+   err := c.requester.SendRequest(ctx, "newToken", &auth.NewTokenArgs{
             Password: auth.Password{password},
             Endpoints: endpoints,
    }, res)
    return res.Token, err
 }
 
-
 func (c *Client) RevokeToken(token, password string) (bool, error) {
+   ctx := context.Background()
    res := &api.SuccessResponse{}
-   err := c.requester.SendRequest("revokeToken", &auth.RevokeTokenArgs{
+   err := c.requester.SendRequest(ctx, "revokeToken", &auth.RevokeTokenArgs{
             Password: auth.Password{password},
             Token: auth.Token{token},
    }, res)
@@ -125,12 +124,11 @@ func (c *Client) RevokeToken(token, password string) (bool, error) {
 }
 
 func (c *Client) ChangePassword(oldPassword, newPassword string) (bool, error) {
+   ctx := context.Background()
    res := &api.SuccessResponse{}
-   err := c.requester.SendRequest("changePassword", &auth.ChangePasswordArgs{
+   err := c.requester.SendRequest(ctx, "changePassword", &auth.ChangePasswordArgs{
             OldPassword: oldPassword,
             NewPassword: newPassword,
    }, res)
    return res.Success, err
 }
-
-

@@ -3,6 +3,7 @@ package cmd
 import (
    "fmt"
    "time"
+   "context"
    "strconv"
    "github.com/ava-labs/avalanchego/api/health"
    "encoding/json"
@@ -26,10 +27,9 @@ func AddHealthCommands(rootCmd *cobra.Command) {
    (*rootCmd).AddCommand(healthCmd)
 }
 
-func HealthClient() *health.Client {
+func HealthClient() health.Client {
    uri := fmt.Sprintf("http://%s:%d", NodeAddress, NodePort)
-   var timeout time.Duration = 1000000000
-   return health.NewClient(uri, timeout)
+   return health.NewClient(uri)
 }
 
 
@@ -57,30 +57,34 @@ func AwaitHealthyCmd() *cobra.Command {
       Short: "avalanchego/api/health GetNodeID method",
       Long: `avalanchego/api/health`,
       Run: awaitHealthy,
-      Args: cobra.ExactArgs(2),
+      Args: cobra.ExactArgs(1),
    }
 }
 
 func liveness(cmd *cobra.Command, args []string) {
-   out, err := HealthClient().GetLiveness()
+   ctx := context.Background()
+   out, err := HealthClient().Liveness(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
+
 func healthy(cmd *cobra.Command, args []string) {
-   out, err := HealthClient().Health()
+   ctx := context.Background()
+   out, err := HealthClient().Health(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
+
 func awaitHealthy(cmd *cobra.Command, args []string) {
-   checks, _ := strconv.Atoi(args[0])
-   temp, _ := strconv.ParseInt(args[1], 10, 64)
+   ctx := context.Background()
+   temp, _ := strconv.ParseInt(args[0], 10, 64)
    var interval time.Duration = time.Duration(temp)
 
-   out, err := HealthClient().AwaitHealthy(checks, interval)
+   out, err := HealthClient().AwaitHealthy(ctx, interval)
    check(err)
 
    fout, ferr := json.MarshalIndent(out, "", "   ")

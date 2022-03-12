@@ -1,7 +1,7 @@
 package cmd
 import (
    "fmt"
-   "time"
+   "context"
    "github.com/ava-labs/avalanchego/api/ipcs"
    "encoding/json"
    "github.com/spf13/cobra"
@@ -23,10 +23,9 @@ func AddIpcCommands(rootCmd *cobra.Command) {
    (*rootCmd).AddCommand(ipcCmd)
 }
 
-func IPCClient() *ipcs.Client {
+func IPCClient() ipcs.Client {
    uri := fmt.Sprintf("http://%s:%d", NodeAddress, NodePort)
-   var timeout time.Duration = 1000000000
-   return ipcs.NewClient(uri, timeout)
+   return ipcs.NewClient(uri)
 }
 
 
@@ -60,23 +59,26 @@ func PublishedBlockchainsCmd() *cobra.Command {
 
 
 func publishBlockchain(cmd *cobra.Command, args []string) {
+   ctx := context.Background()
    blockchainID := args[0]
-   out, err := IPCClient().PublishBlockchain(blockchainID)
+   out, err := IPCClient().PublishBlockchain(ctx, blockchainID)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func unpublishBlockchain(cmd *cobra.Command, args []string) {
+   ctx := context.Background()
    blockchainID := args[0]
-   out, err := IPCClient().UnpublishBlockchain(blockchainID)
+   out, err := IPCClient().UnpublishBlockchain(ctx, blockchainID)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func publishedBlockchains(cmd *cobra.Command, args []string) {
-   out, err := IPCClient().GetPublishedBlockchains()
+   ctx := context.Background()
+   out, err := IPCClient().GetPublishedBlockchains(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)

@@ -2,7 +2,7 @@ package cmd
 
 import (
    "fmt"
-   "time"
+   "context"
    "encoding/json"
    "github.com/ava-labs/avalanchego/api/info"
    "github.com/spf13/cobra"
@@ -30,10 +30,9 @@ func AddInfoCommands(rootCmd *cobra.Command) {
 }
 
 
-func InfoClient() *info.Client {
+func InfoClient() info.Client {
    uri := fmt.Sprintf("http://%s:%d", NodeAddress, NodePort)
-   var timeout time.Duration = 1000000000
-   return info.NewClient(uri, timeout)
+   return info.NewClient(uri)
 }
 
 func NodeIDCmd() *cobra.Command {
@@ -111,58 +110,66 @@ func NodeInfomd() *cobra.Command {
 }
 
 func nodeID(cmd *cobra.Command, args []string) {
-   out, err := InfoClient().GetNodeID()
+   ctx := context.Background()
+   out, err := InfoClient().GetNodeID(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func networkID(cmd *cobra.Command, args []string) {
-   out, err := InfoClient().GetNetworkID()
+   ctx := context.Background()
+   out, err := InfoClient().GetNetworkID(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func networkName(cmd *cobra.Command, args []string) {
-   out, err := InfoClient().GetNetworkName()
+   ctx := context.Background()
+   out, err := InfoClient().GetNetworkName(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func blockchainID(cmd *cobra.Command, args []string) {
+   ctx := context.Background()
    alias := args[0]
-   out, err := InfoClient().GetBlockchainID(alias)
+   out, err := InfoClient().GetBlockchainID(ctx, alias)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func peers(cmd *cobra.Command, args []string) {
-   out, err := InfoClient().Peers()
+   ctx := context.Background()
+   out, err := InfoClient().Peers(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func isBootstrapped(cmd *cobra.Command, args []string) {
+   ctx := context.Background()
    chain := args[0]
-   out, err := InfoClient().IsBootstrapped(chain)
+   out, err := InfoClient().IsBootstrapped(ctx, chain)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func txFee(cmd *cobra.Command, args []string) {
-   out, err := InfoClient().GetTxFee()
+   ctx := context.Background()
+   out, err := InfoClient().GetTxFee(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
    fmt.Println(string(fout))
 }
 func nodeIP(cmd *cobra.Command, args []string) {
-   out, err := InfoClient().GetNodeIP()
+   ctx := context.Background()
+   out, err := InfoClient().GetNodeIP(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)

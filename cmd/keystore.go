@@ -1,7 +1,7 @@
 package cmd
 import (
    "fmt"
-   "time"
+   "context"
    "encoding/json"
    "github.com/ava-labs/avalanchego/api/keystore"
    "github.com/ava-labs/avalanchego/api"
@@ -25,10 +25,9 @@ func AddKeystoreCommands(rootCmd *cobra.Command) {
    (*rootCmd).AddCommand(keystoreCmd)
 }
 
-func KeystoreClient() *keystore.Client {
+func KeystoreClient() keystore.Client {
    uri  := fmt.Sprintf("http://%s:%d", NodeAddress, NodePort)
-   var timeout time.Duration = 1000000000
-   return keystore.NewClient(uri, timeout)
+   return keystore.NewClient(uri)
 }
 
 func ListUsers() *cobra.Command {
@@ -82,7 +81,8 @@ func DeleteUser() *cobra.Command {
 }
 
 func listUsers(command *cobra.Command, args []string) {
-   out, err := KeystoreClient().ListUsers()
+   ctx := context.Background()
+   out, err := KeystoreClient().ListUsers(ctx)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
@@ -90,8 +90,9 @@ func listUsers(command *cobra.Command, args []string) {
 }
 
 func createUser(command *cobra.Command, args []string) {
+   ctx := context.Background()
    userPass := api.UserPass{Username: args[0], Password: args[1] }
-   out, err := KeystoreClient().CreateUser(userPass)
+   out, err := KeystoreClient().CreateUser(ctx, userPass)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
@@ -99,8 +100,9 @@ func createUser(command *cobra.Command, args []string) {
 }
 
 func exportUser(command *cobra.Command, args []string) {
+   ctx := context.Background()
    userPass := api.UserPass{Username: args[0], Password: args[1] }
-   out, err := KeystoreClient().ExportUser(userPass)
+   out, err := KeystoreClient().ExportUser(ctx, userPass)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
@@ -108,9 +110,10 @@ func exportUser(command *cobra.Command, args []string) {
 }
 
 func importUser(command *cobra.Command, args []string) {
+   ctx := context.Background()
    userPass := api.UserPass{Username: args[0], Password: args[1] }
    encoding := []byte(args[2])
-   out, err := KeystoreClient().ImportUser(userPass, encoding)
+   out, err := KeystoreClient().ImportUser(ctx, userPass, encoding)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
@@ -118,8 +121,9 @@ func importUser(command *cobra.Command, args []string) {
 }
 
 func deleteUser(command *cobra.Command, args []string) {
+   ctx := context.Background()
    userPass := api.UserPass{Username: args[0], Password: args[1] }
-   out, err := KeystoreClient().DeleteUser(userPass)
+   out, err := KeystoreClient().DeleteUser(ctx, userPass)
    check(err)
    fout, ferr := json.MarshalIndent(out, "", "   ")
    check(ferr)
